@@ -1,0 +1,7 @@
+node_modules
+
+*.db
+placeholders.json
+storage/
+.env
+.DS_Store
