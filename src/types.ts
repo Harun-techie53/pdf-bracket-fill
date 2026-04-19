@@ -10,8 +10,9 @@ export type DataType =
 
 export type Placeholder = {
   page: number;
-  key: string;
-  dataType: DataType; // hint for client input field; inferred from key
+  key: string;        // camelCase identifier derived from label; stable request/response key
+  label: string;      // original bracketed text as authored in the PDF
+  dataType: DataType; // hint for client input field; inferred from label
   x: number;          // x of '['
   y: number;          // baseline
   width: number;      // width of '[...]' span

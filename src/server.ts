@@ -58,6 +58,7 @@ app.post('/placeholders', async (req: Request, res: Response) => {
       placeholderSessionId: uuid,
       placeholders: placeholders.map((p) => ({
         key: p.key,
+        label: p.label,
         dataType: p.dataType,
       })),
     });

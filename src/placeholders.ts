@@ -2,6 +2,20 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { groupIntoLines, xAtOffset } from './line-grouping.js';
 import type { DataType, Placeholder } from './types.js';
 
+function toCamelKey(label: string): string {
+  const cleaned = label
+    .replace(/['\u2018\u2019]/g, '')   // strip straight + curly apostrophes
+    .replace(/[()/\-]/g, ' ')           // treat as word separators
+    .replace(/[,:.]/g, '');             // strip sentence punctuation
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  return words
+    .map((w, i) => {
+      const lower = w.toLowerCase();
+      return i === 0 ? lower : lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join('');
+}
+
 function inferDataType(key: string): DataType {
   const k = key.toLowerCase();
   if (/\b(sex|gender|status|qualified)\b/.test(k)) return 'enum';
@@ -69,7 +83,8 @@ export async function findPlaceholders(pdfBytes: Uint8Array): Promise<Placeholde
 
         placeholders.push({
           page: i,
-          key: label,
+          key: toCamelKey(label),
+          label,
           dataType: inferDataType(label),
           x: bStart.x,
           y: line.y,
