@@ -20,8 +20,9 @@ client ───────► │  /placeholders
                 └──────────────┘
 
                 ┌──────────────┐
-client ───────► │   /stamp     │ ──► load stored PDF + placeholders by uuid
-   uuid+values  │              │ ──► draw values over each placeholder
+client ───────► │   /stamp     │ ──► load stored PDF + placeholders
+placeholderSessionId           │      by placeholderSessionId
+       + values │              │ ──► draw values over each placeholder
                 │              │      (single-line / extend into leader dots /
                 │              │       wrap to next line as needed)
                 │              │ ──► upload stamped PDF to Box
@@ -123,7 +124,7 @@ Request:
 
 ```json
 {
-  "uuid": "8a2c…",
+  "placeholderSessionId": "8a2c…",
   "values": {
     "Insured Name": "Jane Doe",
     "Policy Number": "00123",
@@ -138,7 +139,7 @@ Response:
 { "boxFileId": "9876543210" }
 ```
 
-After a successful stamp, the stored PDF and placeholder metadata for the uuid are deleted.
+After a successful stamp, the stored PDF and placeholder metadata for the placeholderSessionId are deleted.
 
 ## End-to-end example
 
@@ -151,7 +152,7 @@ SID=$(curl -s -X POST http://localhost:3000/placeholders \
 # 2. Stamp the PDF
 curl -s -X POST http://localhost:3000/stamp \
   -H 'content-type: application/json' \
-  -d "{\"uuid\":\"$SID\",\"values\":{\"Insured Name\":\"Jane Doe\"}}"
+  -d "{\"placeholderSessionId\":\"$SID\",\"values\":{\"Insured Name\":\"Jane Doe\"}}"
 ```
 
 ## Deploying to EC2

@@ -34,14 +34,45 @@ export async function stampPdf(
     const textWidth = font.widthOfTextAtSize(value, p.fontSize);
     const expandedWidth = p.width + p.dotsWidth;
 
-    // Always erase the original bracketed span.
+    // Safety pad: char-position estimates drift when the source font's
+    // ellipsis/leader widths differ from our fallback Helvetica metrics,
+    // leaving a sliver of '[' visible.
+    const leftPad = p.fontSize * 0.8;
+    const rightPad = p.fontSize * 0.2;
+
+    // Always erase the original bracketed span (+ safety padding).
     page.drawRectangle({
-      x: p.x,
+      x: p.x - leftPad,
       y: p.y - p.descent,
-      width: p.width,
+      width: p.width + leftPad + rightPad,
       height,
       color: rgb(1, 1, 1),
     });
+
+    // Wrapped placeholders like `[Label ... [Value]]` have outer brackets
+    // outside the main erase rect. Blank those out too so they don't survive.
+    // Pad only outward — the label sits flush against the opening `[` and the
+    // inner `]` sits flush against the closing `]`, so any inward pad would
+    // clip the adjacent glyph (e.g. chopping the 'J' of "Joint Owner").
+    const wrapperOuterPad = p.fontSize * 0.2;
+    if (p.wrapperOpenX !== undefined && p.wrapperOpenWidth !== undefined) {
+      page.drawRectangle({
+        x: p.wrapperOpenX - wrapperOuterPad,
+        y: p.y - p.descent,
+        width: p.wrapperOpenWidth + wrapperOuterPad,
+        height,
+        color: rgb(1, 1, 1),
+      });
+    }
+    if (p.wrapperCloseX !== undefined && p.wrapperCloseWidth !== undefined) {
+      page.drawRectangle({
+        x: p.wrapperCloseX,
+        y: p.y - p.descent,
+        width: p.wrapperCloseWidth + wrapperOuterPad,
+        height,
+        color: rgb(1, 1, 1),
+      });
+    }
 
     if (textWidth <= p.width) {
       page.drawText(value, { x: p.x, y: p.y, size: p.fontSize, font, color: rgb(0, 0, 0) });

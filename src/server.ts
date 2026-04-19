@@ -67,14 +67,14 @@ app.post('/placeholders', async (req: Request, res: Response) => {
   }
 });
 
-// Stamp the stored PDF using a previously-issued session uuid + values.
-// Body: { uuid: string, values: Record<string, string> }
+// Stamp the stored PDF using a previously-issued placeholderSessionId + values.
+// Body: { placeholderSessionId: string, values: Record<string, string> }
 // Writes the result to OUTPUT_PDF, then clears the session + stored PDF.
 app.post('/stamp', async (req: Request, res: Response) => {
   try {
-    const uuid = req.body?.uuid;
-    if (typeof uuid !== 'string' || uuid.length === 0) {
-      res.status(400).json({ error: 'Request body must include a "uuid" string.' });
+    const placeholderSessionId = req.body?.placeholderSessionId;
+    if (typeof placeholderSessionId !== 'string' || placeholderSessionId.length === 0) {
+      res.status(400).json({ error: 'Request body must include a "placeholderSessionId" string.' });
       return;
     }
 
@@ -84,15 +84,15 @@ app.post('/stamp', async (req: Request, res: Response) => {
       return;
     }
 
-    const placeholders = loadSession(uuid);
+    const placeholders = loadSession(placeholderSessionId);
     if (!placeholders) {
-      res.status(404).json({ error: `No placeholder session found for uuid "${uuid}".` });
+      res.status(404).json({ error: `No placeholder session found for placeholderSessionId "${placeholderSessionId}".` });
       return;
     }
 
-    const pdfBytes = loadPdfBytes(uuid);
+    const pdfBytes = loadPdfBytes(placeholderSessionId);
     if (!pdfBytes) {
-      res.status(404).json({ error: `No stored PDF found for uuid "${uuid}".` });
+      res.status(404).json({ error: `No stored PDF found for placeholderSessionId "${placeholderSessionId}".` });
       return;
     }
 
@@ -107,10 +107,10 @@ app.post('/stamp', async (req: Request, res: Response) => {
 
     const stampedBytes = await stampPdf(pdfBytes, stringValues, placeholders);
 
-    const uploadedFileId = await uploadBoxFile(`stamped-${uuid}.pdf`, stampedBytes);
+    const uploadedFileId = await uploadBoxFile(`stamped-${placeholderSessionId}.pdf`, stampedBytes);
 
-    deleteSession(uuid);
-    deletePdfBytes(uuid);
+    deleteSession(placeholderSessionId);
+    deletePdfBytes(placeholderSessionId);
 
     res.json({
       boxFileId: uploadedFileId,
@@ -125,5 +125,5 @@ app.listen(PORT, () => {
   console.log('Endpoints:');
   console.log('  GET  /health');
   console.log('  POST /placeholders         body: { fileId }');
-  console.log('  POST /stamp                body: { uuid, values: {...} }');
+  console.log('  POST /stamp                body: { placeholderSessionId, values: {...} }');
 });

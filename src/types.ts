@@ -22,6 +22,13 @@ export type Placeholder = {
   ascent: number;
   descent: number;
   fontFamily: string;
+  // Present only for wrapped placeholders like `[Label ... [Value]]`, where
+  // the whole row sits inside an outer pair of brackets. Stamper erases these
+  // so the outer `[` and `]` don't survive into the output.
+  wrapperOpenX?: number;
+  wrapperOpenWidth?: number;
+  wrapperCloseX?: number;
+  wrapperCloseWidth?: number;
 };
 
 export type ItemRange = { start: number; end: number; item: any };
